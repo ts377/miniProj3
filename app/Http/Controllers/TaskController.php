@@ -3,56 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Task;
+use App\Repositories\TaskInterface;
+use App\Services\TaskServices;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index()
+    // space that we can use the repository from
+    protected $model;
+    protected $repo;
+
+
+    public function __construct(TaskServices $services, TaskInterface $taskRepo)
     {
-        return response()->json(Task::all()->toArray());
+        // set the model
+        $this->model = $services;
+        $this->repo=$taskRepo;
     }
+
+
 
     public function store(Request $request)
     {
-        $task = Task::create([
-            'name' => $request->name,
-            'category_id' => $request->category_id,
-            'user_id' => $request->user_id,
-            'order' => $request->order
-        ]);
-
-        return response()->json([
-            'status' => (bool) $task,
-            'data'   => $task,
-            'message' => $task ? 'Task Created!' : 'Error Creating Task'
-        ]);
+        $response = $this->model->create($request);
+        return response()->json($response, 201);
     }
 
-    public function show(Task $task)
+
+
+    public function update(Request $request,Task $task1 )
     {
-        return response()->json($task);
+        $response = $this->model->update($request, $task1);
+        return response()->json($response);
     }
 
-    public function update(Request $request, Task $task)
-    {
-        $status = $task->update(
-            $request->only(['name', 'category_id', 'user_id', 'order'])
-        );
 
-        return response()->json([
-            'status' => $status,
-            'message' => $status ? 'Task Updated!' : 'Error Updating Task'
-        ]);
-    }
-
-    public function destroy(Task $task)
-    {
-        $status = $task->delete();
-
-        return response()->json([
-            'status' => $status,
-            'message' => $status ? 'Task Deleted!' : 'Error Deleting Task'
-        ]);
-    }
 
 }
